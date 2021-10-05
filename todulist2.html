@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todulist</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+    />
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col s8 offset-s2">
+          <h3>Todos</h3>
+
+          <input type="text" id="input" placeholder="Введите задачу" required />
+          <label>
+            <input type="checkbox" id="All" />
+            <span>Select all</span>
+          </label>
+        </div>
+      </div>
+      <div class="row" id="Result"></div>
+      <div class="center">
+        <span class="green-text" id="show_count">0 items</span>&nbsp;
+
+        <button id="show_all" class="btn blue btn_status">All</button>&nbsp;
+        <button id="show_active" class="btn green btn_status">Active</button
+        >&nbsp;
+        <button id="show_complete" class="btn red btn_status">Complete</button>
+      </div>
+    </div>
+
+    <script>
+      let input = document.getElementById("input");
+      let resultInput = document.getElementById("Result");
+      const All = document.querySelector("#All");
+      const btnStatus = document.querySelectorAll(".btn_status");
+
+      let btninput = document.querySelectorAll(".btn-small");
+
+      let data = JSON.parse(localStorage.getItem("todos")) || [];
+
+      input.addEventListener("keydown", function (e) {
+        if (input.value.trim() === "") return;
+
+        if (e.keyCode === 13) {
+          //   menu.style = "display:box";
+          data.push({
+            todo: input.value,
+            checked: false,
+          });
+          input.value = "";
+        }
+
+        List();
+      });
+
+      btninput.forEach(
+        (elem) =>
+          (elem.onclick = () => {
+            console.log("dfd");
+          })
+      );
+      function List(completed, btn_status) {
+        if (data.length) {
+          All.disabled = false;
+          btnStatus.forEach((btn) => (btn.disabled = false));
+        } else {
+          All.disabled = true;
+          btnStatus.forEach((btn) => (btn.disabled = true));
+        }
+
+        let count = 0;
+
+        resultInput.innerHTML = "";
+        data.forEach((elem, index) => {
+          if (btn_status) {
+            if (elem.checked == completed) {
+              resultInput.innerHTML += `
+
+                <div class="col s8 offset-s2">
+                <ul class="collection">
+                <label>
+                  <input type="checkbox" class="complete_btn" ${
+                    elem.checked ? "checked" : ""
+                  } />
+                  <span>${elem.todo}</span>
+                </label>
+                <a class="waves-effect waves-light btn-small red btn_remove"  style="float: right"
+                  >Remove</a
+                >
+                </ul>
+                </div>
+`;
+              count++;
+            }
+          } else {
+            resultInput.innerHTML += `
+
+                <div class="col s8 offset-s2">
+                <ul class="collection">
+                <label>
+                  <input type="checkbox" class="complete_btn" ${
+                    elem.checked ? "checked" : ""
+                  } />
+                  <span>${elem.todo}</span>
+                </label>
+                <a class="waves-effect waves-light btn-small red btn_remove"  style="float: right"
+                  >Remove</a
+                >
+                </ul>
+                </div>
+`;
+            count++;
+          }
+
+          document.querySelector("#show_count").textContent = `${count} items`;
+
+          localStorage.setItem("todos", JSON.stringify(data));
+        });
+
+        const compBtn = document.querySelectorAll(".complete_btn");
+
+        document.querySelectorAll(".btn_remove").forEach((btn, index) => {
+          btn.onclick = () => {
+            data.splice(index, 1);
+            List();
+          };
+
+          compBtn[index].onchange = (e) => {
+            data[index].checked = e.target.checked;
+
+            localStorage.setItem("todos", JSON.stringify(data));
+          };
+        });
+      }
+
+      All.onchange = (e) => {
+        if (e.target.checked) {
+          data = data.map((elem) => {
+            return { ...elem, checked: true };
+          });
+        } else {
+          data = data.map((elem) => {
+            return { ...elem, checked: false };
+          });
+        }
+
+        List();
+      };
+
+      btnStatus.forEach((elem) => {
+        elem.onclick = function () {
+          if (this.id == "show_active") List(false, true);
+          else if (this.id == "show_complete") List(true, true);
+          else List();
+        };
+      });
+
+      List();
+    </script>
+  </body>
+</html>
