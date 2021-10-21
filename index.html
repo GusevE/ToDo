@@ -11,6 +11,12 @@
     />
   </head>
 
+  <style>
+    .collection-item:hover {
+      background: whitesmoke;
+    }
+  </style>
+
   <body>
     <div class="container">
       <div class="row">
@@ -32,6 +38,9 @@
         <button id="show_active" class="btn green btn_status">Active</button
         >&nbsp;
         <button id="show_complete" class="btn red btn_status">Complete</button>
+        <button id="clear" class="btn btn-secondary" style="margin-left: 100px">
+          Complete
+        </button>
       </div>
     </div>
 
@@ -40,6 +49,7 @@
       let resultInput = document.getElementById("Result");
       const All = document.querySelector("#All");
       const btnStatus = document.querySelectorAll(".btn_status");
+      const clear = document.querySelector("#clear");
 
       let btninput = document.querySelectorAll(".btn-small");
 
@@ -55,9 +65,9 @@
             checked: false,
           });
           input.value = "";
-        }
 
-        List();
+          getStorage();
+        }
       });
 
       btninput.forEach(
@@ -67,6 +77,13 @@
           })
       );
       function List(completed, btn_status) {
+        let type = null;
+
+        if (completed && btn_status) type = "completed";
+        else if (!completed && btn_status) type = "active";
+
+        localStorage.setItem("type", type);
+
         if (data.length) {
           All.disabled = false;
           btnStatus.forEach((btn) => (btn.disabled = false));
@@ -76,6 +93,7 @@
         }
 
         let count = 0;
+        let checkedElem = 0;
 
         resultInput.innerHTML = "";
         data.forEach((elem, index) => {
@@ -83,46 +101,83 @@
             if (elem.checked == completed) {
               resultInput.innerHTML += `
 
-                <div class="col s8 offset-s2">
-                <ul class="collection">
-                <label>
-                  <input type="checkbox" class="complete_btn" ${
-                    elem.checked ? "checked" : ""
-                  } />
-                  <span>${elem.todo}</span>
-                </label>
-                <a class="waves-effect waves-light btn-small red btn_remove"  style="float: right"
-                  >Remove</a
-                >
-                </ul>
-                </div>
-`;
+                      <div class="col s8 offset-s2">
+                      <ul class="collection">
+                      <label>
+                        <input type="checkbox" class="complete_btn" ${
+                          elem.checked ? "checked" : ""
+                        } />
+                        <span>${elem.todo}</span>
+
+                      </label>
+                      <a class="waves-effect waves-light btn-small red btn_remove"  style="float: right"
+                        >Remove</a
+                      >
+                      </ul>
+                      </div>
+      `;
               count++;
+
+              // checkedElem++;
             }
           } else {
             resultInput.innerHTML += `
 
-                <div class="col s8 offset-s2">
-                <ul class="collection">
-                <label>
-                  <input type="checkbox" class="complete_btn" ${
-                    elem.checked ? "checked" : ""
-                  } />
-                  <span>${elem.todo}</span>
-                </label>
-                <a class="waves-effect waves-light btn-small red btn_remove"  style="float: right"
-                  >Remove</a
-                >
-                </ul>
-                </div>
-`;
+                      <div class="col s8 offset-s2">
+                      <ul class="collection">
+                        <li class="collection-item row">
+                          <div class="col s3">
+                            <label>
+                              <input type="checkbox" class="complete_btn" ${
+                                elem.checked ? "checked" : ""
+                              } />
+                              <span></span>
+                            </label>
+                          </div>
+                          <div class="col s6">
+                            <span class="edit_todo">${elem.todo}</span>
+                            <input type="text" class="edit_input" value="${
+                              elem.todo
+                            }" style="display: none">
+                          </div>
+
+                          <div class="col right">
+                            <a class="waves-effect waves-light btn-small red btn_remove"  style="float: right"
+                              >Remove</a
+                            >
+                          </div>
+                        </li>
+                      </ul>
+                      </div>
+      `;
             count++;
           }
 
-          document.querySelector("#show_count").textContent = `${count} items`;
+          console.log(checkedElem);
 
+          countElems();
           localStorage.setItem("todos", JSON.stringify(data));
         });
+
+        clear.onclick = function () {
+          data = data.filter((el) => !el.checked);
+          getStorage();
+        };
+
+        function countElems() {
+          let count = data.filter((el) => !el.checked).length;
+
+          document.querySelector("#show_count").textContent = `${count} items`;
+
+          if (count == data.length) clear.style.display = "none";
+          else clear.style.display = "inline";
+
+          if (count == !data.length) {
+            All.checked = true;
+          } else {
+            All.checked = false;
+          }
+        }
 
         const compBtn = document.querySelectorAll(".complete_btn");
 
@@ -136,6 +191,23 @@
             data[index].checked = e.target.checked;
 
             localStorage.setItem("todos", JSON.stringify(data));
+
+            countElems();
+          };
+        });
+
+        const editInput = document.querySelectorAll(".edit_input");
+
+        document.querySelectorAll(".edit_todo").forEach((edit, inx) => {
+          edit.ondblclick = function () {
+            this.style.display = "none";
+            this.nextElementSibling.style.display = "block";
+          };
+
+          editInput[inx].onchange = function () {
+            data[inx].todo = this.value;
+
+            getStorage();
           };
         });
       }
@@ -152,6 +224,8 @@
         }
 
         List();
+
+        countElems();
       };
 
       btnStatus.forEach((elem) => {
@@ -159,10 +233,20 @@
           if (this.id == "show_active") List(false, true);
           else if (this.id == "show_complete") List(true, true);
           else List();
+
+          countElems();
         };
       });
 
-      List();
+      function getStorage() {
+        let typeLocal = localStorage.getItem("type");
+
+        if (typeLocal == "active") List(false, true);
+        else if (typeLocal == "completed") List(true, true);
+        else List();
+      }
+
+      getStorage();
     </script>
   </body>
 </html>
