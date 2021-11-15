@@ -59,7 +59,6 @@
         if (input.value.trim() === "") return;
 
         if (e.keyCode === 13) {
-          //   menu.style = "display:box";
           data.push({
             todo: input.value,
             checked: false,
@@ -101,32 +100,10 @@
             if (elem.checked == completed) {
               resultInput.innerHTML += `
 
-                      <div class="col s8 offset-s2">
-                      <ul class="collection">
-                      <label>
-                        <input type="checkbox" class="complete_btn" ${
-                          elem.checked ? "checked" : ""
-                        } />
-                        <span>${elem.todo}</span>
-
-                      </label>
-                      <a class="waves-effect waves-light btn-small red btn_remove"  style="float: right"
-                        >Remove</a
-                      >
-                      </ul>
-                      </div>
-      `;
-              count++;
-
-              // checkedElem++;
-            }
-          } else {
-            resultInput.innerHTML += `
-
-                      <div class="col s8 offset-s2">
+              <div class="col s8 offset-s2">
                       <ul class="collection">
                         <li class="collection-item row">
-                          <div class="col s3">
+                          <div class="col s2">
                             <label>
                               <input type="checkbox" class="complete_btn" ${
                                 elem.checked ? "checked" : ""
@@ -134,7 +111,39 @@
                               <span></span>
                             </label>
                           </div>
-                          <div class="col s6">
+                          <div class="col s7">
+                            <span class="edit_todo">${elem.todo}</span>
+                            <input type="text" class="edit_input" value="${
+                              elem.todo
+                            }" style="display: none">
+                          </div>
+
+                          <div class="col right">
+                            <a class="waves-effect waves-light btn-small red btn_remove"  style="float: right"
+                              >Remove</a
+                            >
+                          </div>
+                        </li>
+                      </ul>
+                      </div>
+      `;
+              count++;
+            }
+          } else {
+            resultInput.innerHTML += `
+
+                      <div class="col s8 offset-s2">
+                      <ul class="collection">
+                        <li class="collection-item row">
+                          <div class="col s2">
+                            <label>
+                              <input type="checkbox" class="complete_btn" ${
+                                elem.checked ? "checked" : ""
+                              } />
+                              <span></span>
+                            </label>
+                          </div>
+                          <div class="col s7">
                             <span class="edit_todo">${elem.todo}</span>
                             <input type="text" class="edit_input" value="${
                               elem.todo
@@ -159,6 +168,9 @@
           localStorage.setItem("todos", JSON.stringify(data));
         });
 
+        countElems();
+        localStorage.setItem("todos", JSON.stringify(data));
+
         clear.onclick = function () {
           data = data.filter((el) => !el.checked);
           getStorage();
@@ -178,7 +190,7 @@
             All.checked = false;
           }
         }
-
+        const editInput = document.querySelectorAll(".edit_input");
         const compBtn = document.querySelectorAll(".complete_btn");
 
         document.querySelectorAll(".btn_remove").forEach((btn, index) => {
@@ -196,8 +208,6 @@
           };
         });
 
-        const editInput = document.querySelectorAll(".edit_input");
-
         document.querySelectorAll(".edit_todo").forEach((edit, inx) => {
           edit.ondblclick = function () {
             this.style.display = "none";
@@ -206,8 +216,10 @@
 
           editInput[inx].onchange = function () {
             data[inx].todo = this.value;
-
-            getStorage();
+            if (this.value == "") {
+              data.splice(inx, 1);
+            }
+            List();
           };
         });
       }
